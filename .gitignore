@@ -11,7 +11,7 @@ coverage/
 *.sqlite-journal
 *.sqlite-shm
 *.sqlite-wal
-data/
-uploads/
+*.tsbuildinfo
+**/data/*.sqlite*
+**/uploads/**
 .DS_Store
-
