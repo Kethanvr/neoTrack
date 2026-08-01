@@ -1,0 +1,1821 @@
+# NeoTrace AI
+
+## Privacy-First Visual AI Browser Activity Agent
+
+**Project Type:** Full-Stack Chrome Extension with Visual AI
+**Target Role:** NeoFlo AI – SDE Full-Stack Intern
+**Developer:** Kethan VR
+**Project Status:** Minimum Viable Product
+**Primary Platform:** Google Chrome
+**Repository Structure:** Monorepo with complete Git and merge history
+
+---
+
+# 1. Executive Summary
+
+NeoTrace AI is a privacy-first Visual AI browser agent that monitors a user’s activity inside Google Chrome, interprets the visible browser screen using a multimodal AI model, and stores structured activity records in a database.
+
+The product consists of:
+
+1. A Chrome extension that detects active tabs, navigation, idle time and time spent.
+2. A screenshot-processing pipeline that captures the currently visible browser tab with user consent.
+3. A backend that securely receives activity events and screenshots.
+4. A Visual AI service that classifies and summarizes browser activity.
+5. A dashboard that shows activity timelines, categories and daily summaries.
+
+The MVP does not monitor the user’s entire computer. A Chrome extension can monitor browser activity and capture the visible area of an active browser tab, but it does not automatically observe unrelated desktop applications. Chrome provides `captureVisibleTab()` for capturing the visible area of the active tab.
+
+The system is intentionally designed with user consent, pause controls, blocked websites, screenshot deletion and sensitive-page detection so that it behaves as a transparent productivity agent rather than spyware.
+
+---
+
+# 2. Problem Statement
+
+Users perform a large number of activities through their browsers, including:
+
+* Reviewing documents
+* Using finance applications
+* Sending emails
+* Applying for jobs
+* Reading technical documentation
+* Attending meetings
+* Working with dashboards
+* Writing content
+* Managing invoices
+* Using productivity tools
+
+Traditional browser-history systems only record the URL and page title. They cannot explain what the user was actually doing.
+
+For example, the URL may show that a user visited LinkedIn, but it does not explain whether the user was:
+
+* Applying for a job
+* Reading messages
+* Editing their profile
+* Searching for candidates
+* Reading a company page
+
+The proposed system uses browser events and visual understanding to convert raw browser activity into meaningful, structured information.
+
+---
+
+# 3. Proposed Solution
+
+NeoTrace AI will observe browser activity after the user explicitly starts a tracking session.
+
+During an active session, the system will:
+
+1. Detect the active browser tab.
+2. Record the page URL, domain and title.
+3. Calculate how much time the user spends on the page.
+4. Detect tab switches, navigation, idle state and browser focus.
+5. Capture the visible tab at controlled intervals or important events.
+6. Skip sensitive or blocked pages.
+7. Send the screenshot and metadata to the backend.
+8. Use a vision-capable AI model to understand the activity.
+9. Save the structured result in PostgreSQL.
+10. Display the activity through a dashboard.
+
+Example AI-generated activity:
+
+```json
+{
+  "category": "Software Development",
+  "activity": "Reviewing a GitHub pull request",
+  "summary": "The user reviewed code changes and comments in a GitHub pull request.",
+  "application": "GitHub",
+  "productivityLevel": "productive",
+  "confidence": 0.91
+}
+```
+
+---
+
+# 4. Project Objectives
+
+## 4.1 Primary Objective
+
+Build a working Chrome extension and full-stack application that converts browser activity into searchable, AI-generated activity records.
+
+## 4.2 Secondary Objectives
+
+* Demonstrate Chrome Extension Manifest V3 development.
+* Demonstrate browser event handling.
+* Integrate a multimodal AI model.
+* Build a secure data-ingestion backend.
+* Implement authentication and user-specific data access.
+* Display activities through a modern dashboard.
+* Maintain meaningful Git history throughout development.
+* Address privacy and permission concerns professionally.
+
+---
+
+# 5. MVP Scope
+
+## 5.1 Included in the MVP
+
+The MVP will include:
+
+* User registration and authentication
+* Chrome extension installation
+* Extension-to-account pairing
+* Start and pause tracking
+* Active-tab detection
+* URL and page-title tracking
+* Time-spent calculation
+* Idle-state detection
+* Browser-focus detection
+* Event-based screenshot capture
+* Sensitive-page detection
+* User-managed blocked domains
+* Visual AI classification
+* Database storage
+* Activity timeline
+* Category filtering
+* Daily statistics
+* Daily AI-generated summary
+* Screenshot deletion
+* Complete user-data deletion
+* README and architecture documentation
+* Meaningful commits and non-squashed merge commits
+
+## 5.2 Not Included in the MVP
+
+The MVP will not include:
+
+* Full desktop or operating-system monitoring
+* Webcam or microphone recording
+* Continuous screen video recording
+* Keystroke logging
+* Password collection
+* Clipboard monitoring
+* Reading private form values
+* Mobile browser support
+* Multi-organization administration
+* Employee surveillance features
+* Automated actions on websites
+* Long-term screenshot storage by default
+
+These exclusions keep the project realistic, safe and achievable.
+
+---
+
+# 6. Recommended Technology Stack
+
+## 6.1 Chrome Extension
+
+| Area                  | Technology                 |
+| --------------------- | -------------------------- |
+| Extension framework   | WXT                        |
+| Language              | TypeScript                 |
+| User interface        | React                      |
+| Styling               | Tailwind CSS               |
+| State management      | React Context or Zustand   |
+| Validation            | Zod                        |
+| Extension platform    | Chrome Manifest V3         |
+| Local storage         | `chrome.storage`           |
+| Background processing | Manifest V3 service worker |
+| Communication         | Chrome runtime messaging   |
+
+WXT is a modern browser-extension framework that supports TypeScript, React and Manifest V3 while generating the final extension manifest during the build process.
+
+Manifest V3 uses a service worker as the extension’s background event handler rather than a permanently running background page.
+
+## 6.2 Web Dashboard and Backend
+
+| Area                 | Technology              |
+| -------------------- | ----------------------- |
+| Full-stack framework | Next.js with App Router |
+| Language             | TypeScript              |
+| API layer            | Next.js Route Handlers  |
+| UI library           | React                   |
+| Styling              | Tailwind CSS            |
+| Components           | shadcn/ui               |
+| Forms                | React Hook Form         |
+| Validation           | Zod                     |
+| Charts               | Recharts                |
+| Date utilities       | date-fns                |
+
+Next.js Route Handlers provide custom HTTP request handlers inside the App Router and can be used for `GET`, `POST`, `PATCH`, `DELETE` and other API operations.
+
+## 6.3 Database and Authentication
+
+| Area                  | Technology                    |
+| --------------------- | ----------------------------- |
+| Database              | Supabase PostgreSQL           |
+| Authentication        | Supabase Auth                 |
+| File storage          | Supabase Storage              |
+| Database security     | PostgreSQL Row Level Security |
+| Optional live updates | Supabase Realtime             |
+
+Supabase provides an integrated PostgreSQL database, authentication and file-storage system. Its Row Level Security support can restrict every user to only their own records.
+
+## 6.4 Visual AI
+
+| Area        | Technology                                |
+| ----------- | ----------------------------------------- |
+| AI provider | Google Gemini API                         |
+| Input       | Screenshot and browser metadata           |
+| Output      | Structured JSON                           |
+| Use case    | Activity classification and summarization |
+| Validation  | Zod JSON schema                           |
+
+The Gemini API supports image inputs and can generate text-based interpretations from uploaded images.
+
+The AI provider should remain behind an internal interface so that Gemini can later be replaced with OpenAI, Anthropic or another multimodal model without rewriting the application.
+
+## 6.5 Deployment
+
+| Component               | Platform                   |
+| ----------------------- | -------------------------- |
+| Next.js dashboard       | Vercel                     |
+| PostgreSQL/Auth/Storage | Supabase                   |
+| Chrome extension        | Unpacked extension for MVP |
+| Source control          | GitHub                     |
+| CI checks               | GitHub Actions             |
+
+Next.js can run as a Node.js server or Docker deployment, while Vercel provides the simplest deployment workflow for the MVP.
+
+---
+
+# 7. High-Level Architecture
+
+```text
+┌──────────────────────────────────────────┐
+│             Google Chrome                │
+│                                          │
+│  ┌────────────────────────────────────┐  │
+│  │       NeoTrace AI Extension        │  │
+│  │                                    │  │
+│  │  Popup UI                          │  │
+│  │  Background Service Worker         │  │
+│  │  Content Script                    │  │
+│  │  Activity Tracking Engine          │  │
+│  │  Screenshot Controller             │  │
+│  │  Privacy Filter                    │  │
+│  │  Local Event Queue                 │  │
+│  └────────────────────────────────────┘  │
+└───────────────────┬──────────────────────┘
+                    │ HTTPS
+                    ▼
+┌──────────────────────────────────────────┐
+│            Next.js Backend               │
+│                                          │
+│  Authentication and Device Validation    │
+│  Activity Ingestion API                  │
+│  Screenshot Processing API               │
+│  AI Classification Service               │
+│  Daily Summary Service                   │
+│  Data Export and Deletion API            │
+└──────────────┬────────────────┬──────────┘
+               │                │
+               ▼                ▼
+┌──────────────────────┐  ┌──────────────────────┐
+│ Supabase PostgreSQL  │  │ Supabase Storage     │
+│                      │  │                      │
+│ Users                │  │ Temporary Screenshots│
+│ Devices              │  └──────────────────────┘
+│ Tracking Sessions    │
+│ Activities           │              │
+│ Daily Summaries      │              ▼
+│ User Settings        │  ┌──────────────────────┐
+└──────────────────────┘  │ Gemini Vision API    │
+                          │                      │
+                          │ Classification       │
+                          │ Activity Summary     │
+                          │ Sensitivity Detection│
+                          └──────────────────────┘
+```
+
+---
+
+# 8. System Components
+
+## 8.1 Extension Popup
+
+The popup is the primary user-facing control panel.
+
+It will display:
+
+* Tracking status
+* Start tracking button
+* Pause tracking button
+* Current website
+* Current session duration
+* Number of activities recorded
+* Screenshot setting
+* Dashboard button
+* Privacy settings
+* Account connection status
+
+Example states:
+
+```text
+Tracking Off
+Tracking Active
+Tracking Paused
+Account Not Connected
+Permission Required
+Sensitive Page Blocked
+Offline – Events Queued
+```
+
+## 8.2 Background Service Worker
+
+The background service worker is responsible for:
+
+* Listening to tab activation
+* Listening to tab updates
+* Detecting browser-window focus
+* Detecting system idle state
+* Maintaining the active activity session
+* Calculating page duration
+* Scheduling screenshots
+* Sending activity batches
+* Retrying failed requests
+* Updating extension badge status
+
+Chrome’s `idle` API can identify when the system changes between active, idle and locked states.
+
+The `alarms` API can schedule periodic work, but alarms should be recreated or verified when the service worker starts because extension service workers are not continuously active.
+
+## 8.3 Content Script
+
+The content script will run only on sites where the user has granted access.
+
+It will collect privacy-safe signals such as:
+
+```json
+{
+  "scrollPercentage": 64,
+  "clickCount": 7,
+  "hasPasswordField": false,
+  "hasPaymentField": false,
+  "documentVisibility": "visible",
+  "pageType": "article"
+}
+```
+
+It will not collect:
+
+* Typed text
+* Passwords
+* Search queries from input fields
+* Form values
+* Clipboard content
+* Private messages
+* Credit-card numbers
+
+Chrome content scripts run in an isolated environment and communicate with the extension through message passing.
+
+## 8.4 Tracking Engine
+
+The tracking engine will maintain one active activity record at a time.
+
+An activity starts when:
+
+* The active tab changes
+* A page finishes loading
+* The URL changes
+* The browser regains focus
+* The user becomes active after being idle
+
+An activity ends when:
+
+* The user switches tabs
+* The URL changes
+* The browser loses focus
+* The user becomes idle
+* Tracking is paused
+* The browser closes
+* A session timeout occurs
+
+## 8.5 Screenshot Controller
+
+The MVP should not capture a screenshot every second.
+
+Screenshots should be captured:
+
+* After a new page becomes stable
+* After a configurable interval such as 60 seconds
+* When the user manually selects “Analyze now”
+* When a meaningful interaction threshold is reached
+* When an activity is about to end and no screenshot exists
+
+The extension should capture only the currently visible tab.
+
+Continuous video through `tabCapture` is unnecessary for the MVP and would significantly increase privacy, bandwidth, processing and storage problems.
+
+## 8.6 Privacy Filter
+
+Before capturing a screenshot, the extension checks:
+
+* Is tracking active?
+* Is screenshot analysis enabled?
+* Is the domain blocked?
+* Is the browser in an unsupported internal page?
+* Is a password field visible?
+* Is a payment field visible?
+* Is the page classified as sensitive?
+* Has the user granted host permission?
+* Was the previous screenshot taken too recently?
+
+If any condition is unsafe, the system stores only basic metadata or skips the activity entirely.
+
+---
+
+# 9. Chrome Permissions
+
+Recommended Manifest V3 permissions:
+
+```json
+{
+  "permissions": [
+    "tabs",
+    "storage",
+    "idle",
+    "alarms",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
+}
+```
+
+The extension should request broad host access only when the user activates visual tracking, rather than silently requesting access during installation.
+
+Chrome supports optional permissions and optional host permissions that can be granted at runtime. Chrome recommends requesting the narrowest permissions required and using optional permissions when possible.
+
+The `activeTab` permission gives temporary access after a direct user action. That is useful for manual “Analyze this page” functionality. Continuous cross-page tracking will require user-granted host permissions for the required sites.
+
+---
+
+# 10. Activity Data Model
+
+Each activity represents a continuous period during which the user interacted with one browser page.
+
+Example:
+
+```json
+{
+  "id": "activity_01",
+  "sessionId": "session_01",
+  "userId": "user_01",
+  "deviceId": "device_01",
+  "url": "https://github.com/example/project/pull/24",
+  "domain": "github.com",
+  "pageTitle": "Add authentication flow by user",
+  "startedAt": "2026-08-01T10:30:00.000Z",
+  "endedAt": "2026-08-01T10:34:42.000Z",
+  "durationSeconds": 282,
+  "interactionCount": 16,
+  "scrollPercentage": 71,
+  "category": "Software Development",
+  "activityName": "Reviewing a pull request",
+  "summary": "Reviewed code changes related to authentication.",
+  "productivityLevel": "productive",
+  "confidence": 0.93,
+  "screenshotStored": false
+}
+```
+
+---
+
+# 11. Database Design
+
+## 11.1 Users
+
+User identity will be maintained by Supabase Auth.
+
+Additional profile table:
+
+```sql
+create table profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  avatar_url text,
+  timezone text default 'Asia/Kolkata',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+```
+
+## 11.2 Devices
+
+```sql
+create table devices (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  name text not null,
+  device_token_hash text not null,
+  browser text default 'Chrome',
+  extension_version text,
+  last_seen_at timestamptz,
+  revoked_at timestamptz,
+  created_at timestamptz default now()
+);
+```
+
+## 11.3 Tracking Sessions
+
+```sql
+create table tracking_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  device_id uuid not null references devices(id) on delete cascade,
+  started_at timestamptz not null default now(),
+  ended_at timestamptz,
+  active_duration_seconds integer default 0,
+  total_activities integer default 0,
+  status text not null default 'active',
+  created_at timestamptz default now()
+);
+```
+
+Possible session statuses:
+
+```text
+active
+paused
+completed
+interrupted
+```
+
+## 11.4 Activities
+
+```sql
+create table activities (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  device_id uuid not null references devices(id) on delete cascade,
+  session_id uuid not null references tracking_sessions(id) on delete cascade,
+
+  url text,
+  domain text not null,
+  page_title text,
+
+  started_at timestamptz not null,
+  ended_at timestamptz,
+  duration_seconds integer default 0,
+
+  interaction_count integer default 0,
+  scroll_percentage integer default 0,
+
+  category text,
+  activity_name text,
+  summary text,
+  application_name text,
+  productivity_level text,
+  confidence numeric,
+
+  analysis_status text default 'pending',
+  sensitivity_level text default 'unknown',
+  screenshot_path text,
+
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+```
+
+Possible analysis statuses:
+
+```text
+pending
+processing
+completed
+skipped
+failed
+sensitive
+```
+
+## 11.5 Daily Summaries
+
+```sql
+create table daily_summaries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  summary_date date not null,
+  total_active_seconds integer default 0,
+  productive_seconds integer default 0,
+  neutral_seconds integer default 0,
+  distracting_seconds integer default 0,
+  top_categories jsonb default '[]'::jsonb,
+  ai_summary text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+
+  unique(user_id, summary_date)
+);
+```
+
+## 11.6 User Settings
+
+```sql
+create table user_settings (
+  user_id uuid primary key references profiles(id) on delete cascade,
+  screenshot_enabled boolean default true,
+  screenshot_retention_hours integer default 0,
+  capture_interval_seconds integer default 60,
+  idle_threshold_seconds integer default 120,
+  store_full_url boolean default true,
+  store_page_title boolean default true,
+  auto_delete_screenshots boolean default true,
+  updated_at timestamptz default now()
+);
+```
+
+## 11.7 Blocked Domains
+
+```sql
+create table blocked_domains (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  domain text not null,
+  reason text,
+  created_at timestamptz default now(),
+
+  unique(user_id, domain)
+);
+```
+
+## 11.8 Row Level Security
+
+Each table must have Row Level Security enabled.
+
+Example:
+
+```sql
+alter table activities enable row level security;
+
+create policy "Users can read their own activities"
+on activities
+for select
+using (auth.uid() = user_id);
+
+create policy "Users can delete their own activities"
+on activities
+for delete
+using (auth.uid() = user_id);
+```
+
+The Supabase service-role key must never be placed in:
+
+* The Chrome extension
+* Client-side Next.js code
+* Public GitHub files
+* Environment variables prefixed with `NEXT_PUBLIC_`
+
+---
+
+# 12. API Design
+
+## 12.1 Pair Extension
+
+```http
+POST /api/v1/devices/pair
+```
+
+Request:
+
+```json
+{
+  "pairingCode": "841932",
+  "deviceName": "Kethan Ubuntu Chrome",
+  "extensionVersion": "0.1.0"
+}
+```
+
+Response:
+
+```json
+{
+  "deviceId": "device_uuid",
+  "deviceToken": "revocable_device_token"
+}
+```
+
+The pairing code should expire after approximately five minutes.
+
+## 12.2 Start Tracking Session
+
+```http
+POST /api/v1/sessions
+```
+
+Request:
+
+```json
+{
+  "startedAt": "2026-08-01T10:20:00.000Z"
+}
+```
+
+## 12.3 Submit Activity Event
+
+```http
+POST /api/v1/activities
+```
+
+Request:
+
+```json
+{
+  "clientActivityId": "local_activity_uuid",
+  "sessionId": "session_uuid",
+  "url": "https://github.com/example/repository",
+  "domain": "github.com",
+  "pageTitle": "example/repository",
+  "startedAt": "2026-08-01T10:20:00.000Z",
+  "endedAt": "2026-08-01T10:23:20.000Z",
+  "durationSeconds": 200,
+  "interactionCount": 8,
+  "scrollPercentage": 62
+}
+```
+
+`clientActivityId` is required to prevent duplicate records when the extension retries requests.
+
+## 12.4 Analyze Screenshot
+
+```http
+POST /api/v1/activities/{activityId}/analyze
+Content-Type: multipart/form-data
+```
+
+Fields:
+
+```text
+screenshot
+domain
+pageTitle
+durationSeconds
+interactionCount
+```
+
+## 12.5 Pause Session
+
+```http
+PATCH /api/v1/sessions/{sessionId}
+```
+
+```json
+{
+  "status": "paused",
+  "endedAt": "2026-08-01T11:00:00.000Z"
+}
+```
+
+## 12.6 Dashboard Data
+
+```http
+GET /api/v1/dashboard?date=2026-08-01
+```
+
+## 12.7 Delete Activity
+
+```http
+DELETE /api/v1/activities/{activityId}
+```
+
+## 12.8 Delete All User Data
+
+```http
+DELETE /api/v1/account/data
+```
+
+This operation should delete:
+
+* Tracking sessions
+* Activities
+* Screenshots
+* Daily summaries
+* Connected devices
+* User settings
+
+---
+
+# 13. AI Processing Pipeline
+
+## 13.1 Input to the Model
+
+The backend sends:
+
+* Screenshot
+* Domain
+* Page title
+* Duration
+* Interaction count
+* Scroll percentage
+* Allowed category list
+
+The complete URL may be excluded from the AI request to reduce unnecessary data exposure.
+
+## 13.2 AI System Prompt
+
+```text
+You are an activity-classification system.
+
+Analyze the supplied browser screenshot and metadata.
+
+Return only valid JSON.
+
+Do not repeat visible personal information.
+Do not transcribe passwords, email addresses, payment information,
+private messages, financial values or authentication codes.
+
+Identify the high-level activity being performed.
+
+If the page appears sensitive, mark sensitivityLevel as high and
+avoid describing private screen contents.
+```
+
+## 13.3 Required AI Output
+
+```json
+{
+  "category": "Software Development",
+  "activityName": "Reviewing source code",
+  "summary": "The user reviewed source code in a software repository.",
+  "applicationName": "GitHub",
+  "productivityLevel": "productive",
+  "sensitivityLevel": "low",
+  "confidence": 0.92
+}
+```
+
+## 13.4 Categories
+
+Initial MVP categories:
+
+```text
+Software Development
+Communication
+Finance
+Administration
+Research
+Documentation
+Education
+Job Search
+Project Management
+Design
+Entertainment
+Social Media
+Shopping
+News
+Other
+Sensitive
+```
+
+## 13.5 Productivity Levels
+
+```text
+productive
+neutral
+distracting
+unknown
+```
+
+The application should not assume that every social-media or entertainment activity is unproductive. Users should eventually be able to customize category rules.
+
+## 13.6 Screenshot Retention
+
+The recommended default workflow is:
+
+```text
+Capture screenshot
+→ Upload temporarily
+→ Analyze with AI
+→ Save structured result
+→ Delete screenshot
+```
+
+The database should store the AI-derived result rather than keeping every raw screenshot permanently.
+
+---
+
+# 14. Tracking Algorithm
+
+```text
+When tracking starts:
+    Create a tracking session
+    Read the active tab
+    Start a local activity
+    Schedule screenshot analysis
+
+When a tab is activated:
+    End the previous activity
+    Queue the previous activity for upload
+    Start a new activity for the activated tab
+
+When the URL changes:
+    End the current activity
+    Start a new activity
+
+When the browser loses focus:
+    End the current active duration
+    Mark tracking as temporarily inactive
+
+When the browser regains focus:
+    Start or resume an activity for the active tab
+
+When the machine becomes idle:
+    End the current activity
+    Do not count idle time
+
+When the machine becomes active:
+    Start a new activity
+
+When tracking is paused:
+    End the current activity
+    Flush the local event queue
+    Stop screenshots and event listeners
+```
+
+Important implementation rule:
+
+```text
+Never update the duration every second in the database.
+```
+
+Instead, save timestamps and calculate:
+
+```text
+duration = endedAt - startedAt
+```
+
+This reduces unnecessary network and database traffic.
+
+---
+
+# 15. Local Offline Queue
+
+The extension must continue functioning when the network is unavailable.
+
+Use `chrome.storage.local` for a small queue of unsent events.
+
+Example:
+
+```json
+{
+  "pendingEvents": [
+    {
+      "id": "local_uuid",
+      "type": "ACTIVITY_COMPLETED",
+      "attempts": 1,
+      "nextRetryAt": 1785586000000,
+      "payload": {}
+    }
+  ]
+}
+```
+
+The Chrome Storage API is available to service workers and extension pages and is designed for extension-specific persistent state.
+
+Retry policy:
+
+```text
+Attempt 1: immediately
+Attempt 2: after 10 seconds
+Attempt 3: after 30 seconds
+Attempt 4: after 2 minutes
+Attempt 5: after 10 minutes
+```
+
+After the final attempt, the event remains locally available until the next successful connection.
+
+---
+
+# 16. Authentication and Extension Pairing
+
+The extension should not directly contain the user’s password.
+
+Recommended flow:
+
+1. User creates an account on the web dashboard.
+2. User selects **Connect Chrome Extension**.
+3. Dashboard generates a short-lived pairing code.
+4. User enters the pairing code in the extension.
+5. Extension sends the pairing code and device information to the backend.
+6. Backend verifies the pairing code.
+7. Backend generates a revocable device token.
+8. Extension stores the device token locally.
+9. Every extension request includes the device token.
+10. User can revoke the device from the dashboard.
+
+Example header:
+
+```http
+Authorization: Device device_token_here
+```
+
+The database should store only a cryptographic hash of the device token.
+
+---
+
+# 17. User Interface Requirements
+
+## 17.1 Extension Popup
+
+```text
+┌─────────────────────────────┐
+│ NeoTrace AI          ● Live │
+│─────────────────────────────│
+│ Current activity            │
+│ GitHub                      │
+│ Reviewing source code       │
+│                             │
+│ Session time: 01:24:35      │
+│ Activities: 18              │
+│                             │
+│ [ Pause Tracking ]          │
+│ [ Analyze Current Page ]    │
+│                             │
+│ Screenshot analysis: ON     │
+│ Open Dashboard              │
+└─────────────────────────────┘
+```
+
+## 17.2 Dashboard Pages
+
+### Overview
+
+* Total active time
+* Productive time
+* Number of activities
+* Top category
+* Application usage chart
+* Daily AI summary
+
+### Timeline
+
+```text
+10:00–10:18  VS Code Web      Reviewing code
+10:18–10:26  GitHub           Reviewing pull request
+10:26–10:34  Gmail            Responding to email
+10:34–10:52  Documentation    Reading API documentation
+```
+
+### Analytics
+
+* Time by category
+* Time by domain
+* Productive versus neutral time
+* Activity count by hour
+* Longest activities
+* Most-used applications
+
+### Settings
+
+* Enable or disable screenshots
+* Capture interval
+* Idle threshold
+* Blocked websites
+* Screenshot retention
+* Connected devices
+* Export data
+* Delete account data
+
+---
+
+# 18. Privacy and Security Requirements
+
+This project handles highly sensitive browser information. Privacy must be part of the core architecture, not an afterthought.
+
+## 18.1 Mandatory Consent
+
+Before tracking starts, show a clear disclosure:
+
+```text
+NeoTrace AI records browser-tab metadata such as page titles,
+website domains, time spent and optional screenshots.
+
+Screenshots may be processed by an external AI provider to classify
+your activity. Passwords and form values are not intentionally collected.
+
+You can pause tracking, block websites and delete your data at any time.
+```
+
+The user must actively select:
+
+```text
+I understand and enable tracking
+```
+
+Chrome policy requires prominent disclosure and informed consent before collecting user data. The disclosure cannot exist only inside a privacy-policy document.
+
+## 18.2 Sensitive Website Blocking
+
+Block by default:
+
+* Banking sites
+* Payment pages
+* Password managers
+* Authentication pages
+* Medical portals
+* Government identity portals
+* Incognito windows
+* Chrome internal pages
+
+Detect page signals such as:
+
+```html
+<input type="password">
+<input autocomplete="cc-number">
+<input autocomplete="one-time-code">
+```
+
+When detected:
+
+```text
+Do not capture screenshot
+Do not read the DOM
+Store only “Sensitive page excluded,” or store nothing
+```
+
+## 18.3 Security Controls
+
+* HTTPS for all communication
+* Strict input validation
+* Rate limiting
+* Revocable device tokens
+* Hashed device tokens
+* Supabase Row Level Security
+* Signed screenshot URLs
+* Short screenshot retention
+* API keys stored only server-side
+* No service-role key in the extension
+* No remotely hosted executable extension code
+* Content Security Policy
+* User data export and deletion
+* Audit logging for device creation and revocation
+
+Manifest V3 does not allow an extension to execute remotely hosted JavaScript; executable code must be included within the reviewed extension package.
+
+## 18.4 Chrome Web Store Compliance
+
+The extension has a clear single purpose:
+
+> Help users understand and review their own browser activity through AI-generated summaries.
+
+Chrome policies restrict browser-activity collection to data needed for a prominently disclosed user-facing feature. They also require secure handling and an accurate privacy policy.
+
+This project should never be described as hidden monitoring.
+
+Use terms such as:
+
+```text
+Personal activity assistant
+Productivity timeline
+Browser activity journal
+Visual work summarizer
+```
+
+Avoid terms such as:
+
+```text
+Invisible tracker
+Employee surveillance
+Secret monitoring
+Capture everything
+```
+
+---
+
+# 19. Monorepo Structure
+
+```text
+neotrace-ai/
+├── apps/
+│   ├── extension/
+│   │   ├── entrypoints/
+│   │   │   ├── background.ts
+│   │   │   ├── content.ts
+│   │   │   ├── popup/
+│   │   │   │   ├── App.tsx
+│   │   │   │   └── main.tsx
+│   │   │   └── options/
+│   │   │       └── App.tsx
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   │   ├── api-client.ts
+│   │   │   ├── privacy-filter.ts
+│   │   │   ├── event-queue.ts
+│   │   │   ├── activity-tracker.ts
+│   │   │   └── screenshot-manager.ts
+│   │   ├── types/
+│   │   ├── wxt.config.ts
+│   │   └── package.json
+│   │
+│   └── web/
+│       ├── app/
+│       │   ├── api/
+│       │   │   └── v1/
+│       │   ├── dashboard/
+│       │   ├── login/
+│       │   ├── connect-extension/
+│       │   └── privacy/
+│       ├── components/
+│       ├── lib/
+│       │   ├── ai/
+│       │   ├── auth/
+│       │   ├── database/
+│       │   └── validators/
+│       └── package.json
+│
+├── packages/
+│   ├── shared/
+│   │   ├── schemas/
+│   │   ├── constants/
+│   │   └── types/
+│   ├── eslint-config/
+│   └── typescript-config/
+│
+├── supabase/
+│   ├── migrations/
+│   ├── seed.sql
+│   └── config.toml
+│
+├── docs/
+│   ├── architecture.md
+│   ├── privacy.md
+│   ├── api.md
+│   └── screenshots/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── .env.example
+├── package.json
+├── pnpm-workspace.yaml
+├── turbo.json
+├── README.md
+└── LICENSE
+```
+
+Recommended monorepo tooling:
+
+```text
+pnpm workspaces
+Turborepo
+TypeScript
+ESLint
+Prettier
+```
+
+---
+
+# 20. Development Plan
+
+## Phase 1: Project Foundation
+
+Tasks:
+
+* Create GitHub repository.
+* Initialize pnpm monorepo.
+* Add Next.js application.
+* Add WXT React extension.
+* Configure shared TypeScript package.
+* Add ESLint and Prettier.
+* Create environment-variable templates.
+* Add architecture documentation.
+
+Result:
+
+```text
+Extension popup works
+Dashboard opens
+Both projects build successfully
+```
+
+## Phase 2: Authentication and Database
+
+Tasks:
+
+* Create Supabase project.
+* Add database migrations.
+* Add authentication.
+* Add protected dashboard routes.
+* Implement extension pairing codes.
+* Implement connected-device management.
+* Add Row Level Security.
+
+Result:
+
+```text
+User can create an account
+Extension can connect to the account
+Device can be revoked
+```
+
+## Phase 3: Browser Activity Tracking
+
+Tasks:
+
+* Add start and pause tracking.
+* Listen to `tabs.onActivated`.
+* Listen to `tabs.onUpdated`.
+* Listen to `windows.onFocusChanged`.
+* Add idle detection.
+* Build activity start/end logic.
+* Add local event queue.
+* Submit activities to backend.
+
+Result:
+
+```text
+User receives accurate tab and duration records
+```
+
+## Phase 4: Visual Capture and Privacy Filter
+
+Tasks:
+
+* Request optional host permission.
+* Implement screenshot controller.
+* Add screenshot throttling.
+* Add blocked-domain settings.
+* Detect password and payment fields.
+* Skip internal and sensitive pages.
+* Upload temporary screenshots.
+
+Result:
+
+```text
+Safe pages are captured
+Sensitive pages are excluded
+```
+
+## Phase 5: AI Classification
+
+Tasks:
+
+* Add Gemini server-side client.
+* Define structured output schema.
+* Build classification prompt.
+* Validate model output with Zod.
+* Handle retries and invalid output.
+* Delete screenshots after analysis.
+* Update activity with AI result.
+
+Result:
+
+```text
+Browser screenshots become meaningful activity summaries
+```
+
+## Phase 6: Dashboard
+
+Tasks:
+
+* Build overview cards.
+* Build activity timeline.
+* Add category and date filters.
+* Add charts.
+* Add daily summary generation.
+* Add activity deletion.
+* Add data export.
+* Add settings page.
+
+Result:
+
+```text
+User can review and manage tracked activity
+```
+
+## Phase 7: Testing and Deployment
+
+Tasks:
+
+* Add unit tests.
+* Add API integration tests.
+* Add extension manual-test checklist.
+* Test offline queue.
+* Test permission denial.
+* Test blocked domains.
+* Test AI failures.
+* Deploy dashboard.
+* Build extension ZIP.
+* Record demonstration video.
+* Complete README.
+
+---
+
+# 21. Suggested Seven-Day MVP Schedule
+
+## Day 1
+
+* Repository setup
+* Monorepo configuration
+* Extension popup
+* Next.js dashboard skeleton
+* Supabase project
+
+## Day 2
+
+* Database schema
+* Authentication
+* Extension pairing
+* Device-token validation
+
+## Day 3
+
+* Tab tracking
+* URL tracking
+* Time calculation
+* Idle detection
+* Offline queue
+
+## Day 4
+
+* Screenshot capture
+* Permission flow
+* Sensitive-page blocking
+* Screenshot upload
+
+## Day 5
+
+* Gemini integration
+* Structured activity classification
+* Screenshot deletion
+* Error handling
+
+## Day 6
+
+* Dashboard timeline
+* Analytics cards
+* Filters
+* Settings and data deletion
+
+## Day 7
+
+* Testing
+* Bug fixes
+* README
+* Architecture diagram
+* Demo video
+* Final deployment
+
+Do not spend the first days designing an advanced dashboard. First make this complete pipeline work:
+
+```text
+Tab event
+→ Screenshot
+→ Backend
+→ AI result
+→ Database record
+→ Timeline
+```
+
+---
+
+# 22. Testing Strategy
+
+## 22.1 Unit Tests
+
+Test:
+
+* Duration calculation
+* URL sanitization
+* Domain extraction
+* Privacy filters
+* Sensitive-field detection
+* Event deduplication
+* Retry scheduling
+* AI-output validation
+
+## 22.2 Integration Tests
+
+Test:
+
+* Device authentication
+* Session creation
+* Activity submission
+* Screenshot upload
+* AI result storage
+* User-level data isolation
+* Screenshot deletion
+* Data export
+
+## 22.3 Manual Chrome Tests
+
+Test:
+
+1. Start tracking.
+2. Open multiple tabs.
+3. Switch between tabs.
+4. Navigate within one tab.
+5. Minimize Chrome.
+6. Leave the computer idle.
+7. Disconnect internet.
+8. Restore internet.
+9. Open a login page.
+10. Open a blocked website.
+11. Pause tracking.
+12. Restart Chrome.
+13. Revoke the device.
+14. Delete user data.
+
+## 22.4 Security Tests
+
+* Access another user’s activity ID.
+* Reuse a revoked device token.
+* Upload a non-image file.
+* Upload an oversized screenshot.
+* Submit malformed JSON.
+* Send repeated duplicate events.
+* Attempt SQL injection.
+* Attempt script injection in a page title.
+* Verify secrets are absent from the extension build.
+
+---
+
+# 23. MVP Acceptance Criteria
+
+The MVP is complete when:
+
+* A user can create an account.
+* A Chrome extension can be connected to that account.
+* The user must explicitly enable tracking.
+* The user can pause tracking.
+* Active-tab changes are recorded.
+* Time spent is reasonably calculated.
+* Idle time is excluded.
+* Screenshots are captured only when enabled.
+* Sensitive pages are skipped.
+* Screenshots are interpreted by a visual AI model.
+* AI results are saved as structured records.
+* Activities appear in the dashboard.
+* Users can filter and delete activities.
+* Users cannot access another user’s data.
+* The extension works temporarily without internet.
+* The repository contains meaningful commit history.
+* Feature branches are merged without squashing.
+
+---
+
+# 24. Git Strategy
+
+NeoFlo specifically stated:
+
+> Do not squash merge commits and keep the whole history.
+
+Therefore, use feature branches.
+
+Example:
+
+```bash
+git checkout -b feat/project-foundation
+git add .
+git commit -m "chore: initialize monorepo and shared tooling"
+git commit -m "feat: add Next.js dashboard application"
+git commit -m "feat: add WXT Chrome extension application"
+
+git checkout main
+git merge --no-ff feat/project-foundation
+git push origin main
+```
+
+Recommended branches:
+
+```text
+feat/project-foundation
+feat/authentication
+feat/device-pairing
+feat/activity-tracking
+feat/screenshot-capture
+feat/privacy-filter
+feat/ai-analysis
+feat/dashboard
+feat/data-controls
+test/mvp-coverage
+docs/project-documentation
+```
+
+Recommended commit history:
+
+```text
+chore: initialize pnpm monorepo
+feat: add WXT React Chrome extension
+feat: add Next.js dashboard
+feat: configure Supabase authentication
+feat: add device pairing workflow
+feat: track active browser tabs
+feat: calculate page activity duration
+feat: exclude browser idle time
+feat: persist offline activity queue
+feat: request optional website permissions
+feat: capture visible browser tab
+feat: block sensitive pages from capture
+feat: upload screenshots for processing
+feat: add Gemini activity classification
+feat: validate AI responses with Zod
+feat: delete screenshots after analysis
+feat: add activity timeline dashboard
+feat: add category analytics
+feat: add user privacy settings
+feat: support activity and account deletion
+test: cover tracking and privacy utilities
+docs: document architecture and setup
+fix: prevent duplicate activity submissions
+fix: restore tracking state after worker restart
+```
+
+Do not create one large commit such as:
+
+```text
+final project
+```
+
+The evaluators want to understand how the system evolved.
+
+---
+
+# 25. Demonstration Flow
+
+The final demonstration should show:
+
+1. User opens the web dashboard.
+2. User signs in.
+3. User generates a pairing code.
+4. User connects the Chrome extension.
+5. User reviews the consent screen.
+6. User starts tracking.
+7. User opens GitHub and reviews code.
+8. User opens documentation.
+9. User opens a job posting.
+10. Extension records tab changes and duration.
+11. AI classifies each activity.
+12. Dashboard timeline updates.
+13. User opens a sensitive login page.
+14. Extension shows “Capture skipped for sensitive page.”
+15. User pauses tracking.
+16. User deletes an activity.
+17. User revokes the connected device.
+
+---
+
+# 26. Expected Challenges and Mitigations
+
+## Challenge: Service Worker Suspension
+
+Manifest V3 service workers do not remain continuously active.
+
+**Mitigation:**
+
+* Persist active-session state in `chrome.storage`.
+* Reconstruct state when the worker starts.
+* Use browser events rather than continuous loops.
+* Verify required alarms at service-worker startup.
+
+## Challenge: Duplicate Activity Events
+
+Network retries could create duplicate database records.
+
+**Mitigation:**
+
+* Generate a client-side UUID.
+* Add a unique database constraint.
+* Make the activity API idempotent.
+
+## Challenge: Excessive Screenshot Costs
+
+Frequent screenshots increase AI and storage costs.
+
+**Mitigation:**
+
+* Capture on meaningful events.
+* Add a minimum interval.
+* Resize and compress images.
+* Skip duplicate pages.
+* Store only AI summaries by default.
+
+## Challenge: Sensitive Information
+
+Screenshots may contain personal information.
+
+**Mitigation:**
+
+* Explicit consent.
+* Password-field detection.
+* Payment-field detection.
+* Blocklist support.
+* Manual pause button.
+* Temporary storage.
+* Immediate deletion after processing.
+* Avoid transcribing personal information in AI output.
+
+## Challenge: AI Hallucination
+
+The model may incorrectly classify an activity.
+
+**Mitigation:**
+
+* Return a confidence score.
+* Use a restricted category list.
+* Validate structured JSON.
+* Allow users to edit categories.
+* Fall back to domain-based classification.
+* Show “Uncertain activity” for low-confidence results.
+
+## Challenge: URL Privacy
+
+URLs may contain search terms, document IDs or tokens.
+
+**Mitigation:**
+
+* Remove query strings by default.
+* Remove fragments.
+* Store domain and safe pathname.
+* Never store known authentication parameters.
+* Give users a metadata-only mode.
+
+---
+
+# 27. Future Enhancements
+
+After the MVP:
+
+* User-corrected AI categories
+* Personalized classification rules
+* Weekly productivity summaries
+* Natural-language search
+* Context graph between activities
+* Project-based grouping
+* Meeting and calendar integration
+* Automatic work-session detection
+* Local AI classification
+* Screenshot redaction
+* Semantic activity embeddings
+* Team workspace with explicit employee consent
+* Enterprise retention rules
+* Browser automation agents
+* Finance-workflow detection
+* Invoice and payment-follow-up context
+* Cross-browser support
+* Desktop companion application
+
+A future context graph could connect:
+
+```text
+Email
+→ Invoice document
+→ Finance dashboard
+→ Customer record
+→ Follow-up message
+```
+
+This direction is particularly relevant to NeoFlo’s work involving finance AI agents and contextual enterprise workflows.
+
+---
+
+# 28. Form Answer: “What Was Your Approach?”
+
+I approached the problem as a privacy-first full-stack browser activity system. I first designed a Manifest V3 Chrome extension to detect active-tab changes, page navigation, browser focus and idle time. The extension calculates the duration of each activity and captures the visible tab only after the user explicitly enables screenshot analysis.
+
+Before capturing, the extension checks blocked domains and sensitive page signals such as password or payment fields. Activity metadata and temporary screenshots are sent securely to a Next.js backend. A multimodal AI model analyzes the screenshot and returns a structured category, activity name, summary, productivity level and confidence score.
+
+The processed result is stored in PostgreSQL and displayed through a dashboard containing an activity timeline, category analytics and daily summaries. I also implemented pause controls, offline event queuing, device authentication, user-level database security and data deletion. I divided the project into feature branches and preserved the full Git and merge history rather than squashing commits.
+
+---
+
+# 29. Short Form Answer
+
+I built the solution as a privacy-first Manifest V3 Chrome extension and a Next.js dashboard. The extension tracks active tabs, page navigation, browser focus, idle state and time spent. With user consent, it captures the visible browser tab, skips sensitive pages and sends the screenshot to a secure backend. A multimodal AI model classifies the activity and returns a structured summary, which is stored in PostgreSQL and displayed in an activity timeline. I also added pause controls, blocked domains, offline event queuing, device authentication, screenshot deletion and user-level data security.
+
+---
+
+# 30. Final Deliverables
+
+The GitHub repository should contain:
+
+* Working Chrome extension
+* Working web dashboard
+* Database migrations
+* Authentication
+* Device pairing
+* Activity tracking
+* Visual AI integration
+* Privacy controls
+* API documentation
+* Architecture diagram
+* Environment-variable example
+* Local setup instructions
+* Deployment instructions
+* Testing instructions
+* Screenshots
+* Demonstration video link
+* Full Git history
+* Non-squashed feature-branch merge commits
+
+---
+
+# 31. Project Conclusion
+
+NeoTrace AI demonstrates a complete full-stack and AI engineering workflow rather than only a frontend prototype. It combines browser APIs, event-driven tracking, offline state management, secure backend APIs, multimodal AI, structured database design, authentication, privacy controls and analytics.
+
+The most important engineering decision is to avoid treating “track all user activity” as unlimited surveillance. The product should provide a visible, user-controlled feature with informed consent, narrow permissions and clear data controls.
+
+For the MVP, success is not determined by capturing the maximum possible information. Success is determined by reliably converting a privacy-safe browser session into useful, structured and searchable activity context.
