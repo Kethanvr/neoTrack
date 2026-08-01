@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.wxt/
+.output/
+dist/
+coverage/
+*.log
+.env
+.env.local
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+data/
+uploads/
+.DS_Store
+
