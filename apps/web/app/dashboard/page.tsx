@@ -31,6 +31,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         {data.categories.length ? data.categories.slice(0, 6).map((category) => <div className="bar-row" key={category.name}><div className="bar-meta"><span>{category.name}</span><span>{formatDuration(category.seconds)}</span></div><div className="bar"><div style={{width: `${Math.round(category.seconds / data.totalSeconds * 100)}%`}} /></div></div>) : <div className="empty">Your category breakdown will appear here.</div>}
       </div>
     </section>
+    <section className="card" style={{marginTop: 15}}><div className="card-title">Daily summary</div><p style={{fontSize: 17, marginBottom: 0}}>{data.dailySummary ?? "Analyze an activity to generate today’s private summary."}</p></section>
   </>;
 }
-

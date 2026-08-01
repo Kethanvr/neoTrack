@@ -38,7 +38,11 @@ export function getDashboard(userId: string, date: string) {
     .map(([name, seconds]) => ({ name, seconds }))
     .sort((a, b) => b.seconds - a.seconds);
 
-  return { activities, totalSeconds, productiveSeconds, categories };
+  const dailySummary = database.prepare(
+    "select ai_summary from daily_summaries where user_id = ? and summary_date = ?",
+  ).get(userId, date) as { ai_summary: string | null } | undefined;
+
+  return { activities, totalSeconds, productiveSeconds, categories, dailySummary: dailySummary?.ai_summary ?? null };
 }
 
 export function formatDuration(seconds: number) {
@@ -47,4 +51,3 @@ export function formatDuration(seconds: number) {
   const minutes = Math.floor((seconds % 3600) / 60);
   return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
-
